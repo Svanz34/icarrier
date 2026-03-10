@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#f0f2f7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="iCarrier">
+<link rel="manifest" href="manifest.json">
+<title>iCarrier — iRacing Career Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f0f2f7; --bg2:#ffffff; --bg3:#e8eaf0;
+  --card:#ffffff; --card2:#f4f5f9; --border:#dde0ea;
+  --accent:#d42e14; --accent2:#ff5c3a;
+  --gold:#c9860a; --silver:#7a8499; --bronze:#a0601a;
+  --green:#1a9e52; --blue:#2276d4; --purple:#7c3aad;
+  --text:#1a1a2e; --text2:#555870; --text3:#9096b0;
+  --radius:12px; --radius-sm:8px; --nav-h:64px; --header-h:56px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100dvh;overflow-x:hidden}
+
+/* HEADER */
+.header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);background:rgba(240,242,247,.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px}
+.logo{font-family:'Orbitron',monospace;font-weight:900;font-size:20px;letter-spacing:2px;background:linear-gradient(135deg,var(--accent),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hbudget-label{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase}
+.hbudget-val{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;color:var(--accent)}
+
+/* NAV */
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:100;height:var(--nav-h);background:rgba(240,242,247,.98);backdrop-filter:blur(16px);border-top:1px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--text3);transition:color .2s}
+.nb.active{color:var(--accent)}
+.nb svg{width:21px;height:21px}
+.nb span{font-size:10px;letter-spacing:.4px;font-weight:500}
+
+main{padding-top:calc(var(--header-h) + 8px);padding-bottom:calc(var(--nav-h) + 8px);padding:calc(var(--header-h) + 10px) 12px calc(var(--nav-h) + 10px)}
+.page{display:none;animation:fi .2s ease}
+.page.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+.stitle{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin:18px 0 8px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.ctitle{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text2);margin-bottom:12px;text-transform:uppercase}
+
+/* STATS */
+.srow{display:flex;gap:8px;margin-bottom:8px}
+.sbox{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 6px;text-align:center}
+.slabel{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
+.sval{font-family:'Orbitron',monospace;font-size:15px;font-weight:700}
+.gold{color:var(--gold)} .green{color:var(--green)} .blue{color:var(--blue)} .red{color:var(--accent2)} .purple{color:var(--purple)}
+
+/* FORM */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg.full{grid-column:1/-1}
+label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;font-weight:500}
+input,select{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;width:100%;outline:none;transition:border-color .2s;-webkit-appearance:none}
+input:focus,select:focus{border-color:var(--accent)}
+select option{background:var(--bg2)}
+
+.btn{background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;width:100%;margin-top:8px;transition:opacity .2s}
+.btn:active{opacity:.8}
+.btn.sec{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.btn.blue-btn{background:var(--blue)}
+
+/* RACE CARDS */
+.rcard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden}
+.rcard.done{border-color:rgba(212,46,20,.35)}
+.rchead{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer}
+.rwlabel{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px}
+.rwtotal{font-family:'Orbitron',monospace;font-size:13px;font-weight:700}
+.rcbody{padding:0 14px 14px;display:none}
+.rcbody.open{display:block}
+.chevron{transition:transform .2s;color:var(--text3)}
+.chevron.open{transform:rotate(180deg)}
+
+/* POSITION BADGE */
+.pb{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;flex-shrink:0}
+.p1{background:var(--gold);color:#fff}
+.p2{background:var(--silver);color:#fff}
+.p3{background:var(--bronze);color:#fff}
+.po{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+
+/* SPONSOR */
+.spcard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:8px;cursor:pointer;transition:border-color .2s;position:relative;overflow:hidden}
+.spcard.sel{border-color:var(--accent)}
+.spcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--gold));opacity:0;transition:opacity .2s}
+.spcard.sel::before{opacity:1}
+.spname{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;margin-bottom:3px}
+.spfocus{font-size:11px;color:var(--text2);margin-bottom:8px;font-style:italic}
+.spdesc{font-size:11px;color:var(--text3);line-height:1.5;margin-bottom:10px}
+.sptags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-size:10px;color:var(--text2);display:flex;align-items:center;gap:3px}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dotg{background:var(--gold)} .dots{background:var(--silver)} .dotb{background:var(--bronze)}
+
+/* CLASSIFICA */
+.rank-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.rank-row:last-child{border-bottom:none}
+.rank-num{font-family:'Orbitron',monospace;font-size:11px;color:var(--text3);width:16px;text-align:right;flex-shrink:0}
+.rank-name{flex:1;font-size:13px;font-weight:500}
+.rank-rating{display:flex;gap:2px;margin-right:6px}
+.rank-star{font-size:10px}
+.rank-pts{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--gold)}
+.rank-trend{font-size:11px;width:20px;text-align:center}
+.me-badge{font-size:9px;background:var(--accent);color:#fff;border-radius:3px;padding:1px 5px;font-weight:700;margin-left:4px}
+
+/* GRIGLIA GARA */
+.grid-table{width:100%;border-collapse:collapse;font-size:12px}
+.grid-table th{color:var(--text3);font-weight:500;text-align:left;padding:5px 6px;border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:.7px}
+.grid-table td{padding:7px 6px;border-bottom:1px solid rgba(42,42,61,.5)}
+.grid-table tr:last-child td{border-bottom:none}
+.grid-table tr.me-row td{background:rgba(212,46,20,.07)}
+
+/* BREAKDOWN */
+.bk{margin-top:10px;background:var(--bg3);border-radius:8px;padding:10px}
+.bk-row{display:flex;justify-content:space-between;padding:3px 0;font-size:12px;color:var(--text2)}
+.bk-row.total{border-top:1px solid var(--border);margin-top:4px;padding-top:6px;font-weight:700}
+
+/* PILOTA SETUP */
+.pilot-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)}
+.pilot-row:last-child{border-bottom:none}
+.pilot-del{background:none;border:none;color:var(--accent2);cursor:pointer;font-size:15px;padding:0 4px;flex-shrink:0}
+.star-sel{display:flex;gap:4px;margin-left:auto}
+.star-btn{background:none;border:none;cursor:pointer;font-size:18px;padding:0;line-height:1}
+
+/* RATING BADGE */
+.rating-badge{display:inline-flex;align-items:center;gap:2px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:10px}
+
+/* ACCORDION */
+.acc-head{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:6px 0}
+.acc-body{display:none}
+.acc-body.open{display:block}
+
+.divider{height:1px;background:var(--border);margin:10px 0}
+.accent-bar{height:3px;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--gold));margin-bottom:14px}
+.toast{position:fixed;bottom:calc(var(--nav-h) + 14px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--green);color:#fff;padding:9px 20px;border-radius:99px;font-size:12px;font-weight:600;opacity:0;transition:all .3s;z-index:999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--accent);color:#fff}
+.empty{text-align:center;padding:28px 16px;color:var(--text3)}
+.empty-icon{font-size:36px;margin-bottom:10px}
+
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* EVOLUTION INDICATOR */
+.evo-up{color:var(--green);font-size:10px}
+.evo-down{color:var(--accent2);font-size:10px}
+.evo-same{color:var(--text3);font-size:10px}
+
+.inline-row{display:flex;gap:8px;align-items:flex-end}
+.inline-row>*{flex:1}
+.inline-row .btn{margin-top:0;flex:0 0 auto;width:auto;padding:10px 14px}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">iCarrier</div>
+  <div style="text-align:right">
+    <div class="hbudget-label">Budget</div>
+    <div class="hbudget-val" id="hBudget">$ 0</div>
+  </div>
+</header>
+
+<main>
+
+<!-- ══════════ HOME ══════════ -->
+<div class="page active" id="page-home">
+  <div class="accent-bar"></div>
+  <div class="srow">
+    <div class="sbox"><div class="slabel">Budget</div><div class="sval gold" id="hStatBudget">0</div></div>
+    <div class="sbox"><div class="slabel">Gare</div><div class="sval blue" id="hStatGare">0</div></div>
+    <div class="sbox"><div class="slabel">Vittorie</div><div class="sval gold" id="hStatVit">0</div></div>
+  </div>
+  <div class="srow">
+    <div class="sbox"><div class="slabel">Podio%</div><div class="sval green" id="hStatPodio">0%</div></div>
+    <div class="sbox"><div class="slabel">Inc.</div><div class="sval red" id="hStatInc">0</div></div>
+    <div class="sbox"><div class="slabel">Pos.Classif.</div><div class="sval purple" id="hStatPos">—</div></div>
+  </div>
+
+  <div class="stitle">Sponsor Attivo</div>
+  <div class="card" id="hSponsorCard"><div style="color:var(--text3);font-size:13px">Nessuno — vai su Sponsor</div></div>
+
+  <div class="stitle">Riepilogo Stagione</div>
+  <div id="hWeeksSummary"></div>
+</div>
+
+<!-- ══════════ GARE ══════════ -->
+<div class="page" id="page-gare">
+  <div class="stitle">Registra Risultati</div>
+  <div id="raceWeeksList"></div>
+</div>
+
+<!-- ══════════ CLASSIFICA ══════════ -->
+<div class="page" id="page-classifica">
+
+  <div class="stitle">Griglia Piloti</div>
+  <div class="card">
+    <div class="ctitle">Setup Prima Gara</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.5">
+      Aggiungi i piloti con il loro livello iniziale (⭐ debole → ⭐⭐⭐⭐⭐ dominante). Il loro rating si evolverà automaticamente ogni gara.
+    </p>
+    <div class="inline-row" style="margin-bottom:8px">
+      <input type="text" id="pilotNameIn" placeholder="Nome pilota..." maxlength="24">
+      <div style="display:flex;gap:4px;align-items:center" id="starPicker">
+        <button class="star-btn" onclick="setStar(1)">☆</button>
+        <button class="star-btn" onclick="setStar(2)">☆</button>
+        <button class="star-btn" onclick="setStar(3)">☆</button>
+        <button class="star-btn" onclick="setStar(4)">☆</button>
+        <button class="star-btn" onclick="setStar(5)">☆</button>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:6px" id="starLabel">Rating: seleziona stelle</div>
+    <button class="btn" onclick="addPilot()" style="margin-top:4px">+ Aggiungi Pilota</button>
+    <div id="pilotSetupList" style="margin-top:10px"></div>
+  </div>
+
+  <div class="stitle">Classifica Campionato</div>
+  <div class="card">
+    <div id="rankingTable"></div>
+  </div>
+
+  <div class="stitle">Griglia per Settimana</div>
+  <div id="weekGrids"></div>
+</div>
+
+<!-- ══════════ SPONSOR ══════════ -->
+<div class="page" id="page-sponsor">
+  <div class="stitle">Seleziona Sponsor</div>
+  <div id="sponsorList"></div>
+</div>
+
+<!-- ══════════ SETTINGS ══════════ -->
+<div class="page" id="page-settings">
+  <div class="stitle">Stagione</div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div><div style="font-size:13px;font-weight:500">Budget Iniziale</div><div style="font-size:11px;color:var(--text3)">Crediti di partenza</div></div>
+      <input type="number" id="sBudgetIniz" style="width:110px;text-align:right" placeholder="0">
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div><div style="font-size:13px;font-weight:500">Prezzo Auto</div><div style="font-size:11px;color:var(--text3)">Costo una-tantum</div></div>
+      <input type="number" id="sCarPrice" style="width:110px;text-align:right" placeholder="0">
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0">
+      <div><div style="font-size:13px;font-weight:500">Iscrizione Gara</div><div style="font-size:11px;color:var(--text3)">Costo per gara</div></div>
+      <input type="number" id="sEntryFee" style="width:110px;text-align:right" placeholder="0">
+    </div>
+  </div>
+
+  <div class="stitle">Premi Campionato (Gara)</div>
+  <div class="card">
+    <div class="fgrid">
+      <div class="fg"><label>1° Posto</label><input type="number" id="sCh1" placeholder="500"></div>
+      <div class="fg"><label>2° Posto</label><input type="number" id="sCh2" placeholder="250"></div>
+      <div class="fg"><label>3° Posto</label><input type="number" id="sCh3" placeholder="100"></div>
+    </div>
+  </div>
+
+  <div class="stitle">Tabella Malus Incidenti</div>
+  <div class="card">
+    <table style="width:100%;border-collapse:collapse;font-size:11px">
+      <tr><th style="color:var(--text3);text-align:left;padding:4px 6px">Inc.</th><th style="color:var(--text3);text-align:left;padding:4px 6px">Malus</th></tr>
+      <tr><td style="padding:5px 6px;color:var(--text2);border-top:1px solid var(--border)">0</td><td style="padding:5px 6px;color:var(--text2);border-top:1px solid var(--border)">0</td></tr>
+      <tr><td style="padding:5px 6px;color:var(--text2);border-top:1px solid var(--border)">1–3</td><td style="padding:5px 6px;color:var(--accent2);border-top:1px solid var(--border)">-25</td></tr>
+      <tr><td style="padding:5px 6px;color:var(--text2);border-top:1px solid var(--border)">4–7</td><td style="padding:5px 6px;color:var(--accent2);border-top:1px solid var(--border)">-50</td></tr>
+      <tr><td style="padding:5px 6px;color:var(--text2);border-top:1px solid var(--border)">8–11</td><td style="padding:5px 6px;color:var(--accent2);border-top:1px solid var(--border)">-100</td></tr>
+      <tr><td style="padding:5px 6px;color:var(--text2);border-top:1px solid var(--border)">12–15</td><td style="padding:5px 6px;color:var(--accent2);border-top:1px solid var(--border)">-200</td></tr>
+      <tr><td style="padding:5px 6px;color:var(--text2);border-top:1px solid var(--border)">16+</td><td style="padding:5px 6px;color:var(--accent2);border-top:1px solid var(--border)">-400+</td></tr>
+    </table>
+  </div>
+
+  <button class="btn" onclick="saveSettings()">💾 Salva Impostazioni</button>
+  <button class="btn sec" style="margin-top:6px" onclick="resetAll()">🗑️ Reset Stagione</button>
+</div>
+
+</main>
+
+<nav class="nav">
+  <button class="nb active" id="nav-home" onclick="goTo('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Home</span>
+  </button>
+  <button class="nb" id="nav-gare" onclick="goTo('gare')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span>Gare</span>
+  </button>
+  <button class="nb" id="nav-classifica" onclick="goTo('classifica')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span>Classifica</span>
+  </button>
+  <button class="nb" id="nav-sponsor" onclick="goTo('sponsor')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+    <span>Sponsor</span>
+  </button>
+  <button class="nb" id="nav-settings" onclick="goTo('settings')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span>Setup</span>
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════
+//  CONSTANTS
+// ═══════════════════════════
+
+const NUM_WEEKS = 10;
+
+// iRacing official points system (pos 1..25+)
+const IR_POINTS = [35,32,30,28,26,24,22,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1];
+function irPoints(pos) { return pos >= 1 && pos <= IR_POINTS.length ? IR_POINTS[pos-1] : (pos > IR_POINTS.length ? 1 : 0); }
+
+const INC_MALUS = [[0,0,0],[1,3,-25],[4,7,-50],[8,11,-100],[12,15,-200],[16,19,-400],[20,23,-800],[24,99,-1600]];
+function incMalus(inc) {
+  if (inc === null || inc === undefined) return 0;
+  for (const [mn,mx,m] of INC_MALUS) if (inc >= mn && inc <= mx) return m;
+  return 0;
+}
+
+const SPONSORS = [
+  {id:'perf',name:'Performance Racing',focus:'Focus: vincere le gare.',desc:'Punta tutto sul risultato puro. Ricompensa forte il 1° posto.',prizes:{p1:200,p2:100,p3:50,z0:200,bsr:2,bir:3},season:{p1:3000,p2:2000,p3:1000}},
+  {id:'clean',name:'Clean Driver',focus:'Focus: guida pulita.',desc:'Ossessionato dalla guida pulita. Paga molto con pochi incidenti.',prizes:{p1:80,p2:60,p3:40,z0:300,bsr:3,bir:1},season:{p1:2000,p2:1000,p3:500}},
+  {id:'srm',name:'SR Master',focus:'Focus: Safety Rating.',desc:'Interessato quasi solo al SR. Vuole crescita costante.',prizes:{p1:50,p2:30,p3:20,z0:150,bsr:5,bir:1},season:{p1:2000,p2:1000,p3:500}},
+  {id:'irc',name:'iRating Climber',focus:'Focus: crescita iRating.',desc:'Vuole il tuo iRating salire gara dopo gara.',prizes:{p1:100,p2:70,p3:40,z0:100,bsr:1,bir:5},season:{p1:2000,p2:1500,p3:800}},
+  {id:'pod',name:'Podium Hunter',focus:'Focus: massimizzare i podi.',desc:'Premia bene tutte e tre le posizioni di podio.',prizes:{p1:100,p2:80,p3:60,z0:100,bsr:2,bir:2},season:{p1:2500,p2:1500,p3:800}},
+  {id:'cons',name:'Consistency PRO',focus:'Focus: costanza.',desc:'Non cerca la vittoria ma la costanza nei risultati.',prizes:{p1:80,p2:75,p3:65,z0:150,bsr:3,bir:2},season:{p1:2000,p2:1500,p3:1000}},
+  {id:'safe',name:'Safety First',focus:'Focus: zero incidenti.',desc:'Priorità assoluta alla sicurezza. Non perdona la guida sporca.',prizes:{p1:40,p2:20,p3:10,z0:500,bsr:5,bir:1},season:{p1:2000,p2:1000,p3:500}},
+  {id:'all',name:'All-Rounder',focus:'Focus: tutto bilanciato.',desc:'Vuole un pacchetto completo. Ottimi bonus combinati.',prizes:{p1:60,p2:50,p3:40,z0:200,bsr:4,bir:4},season:{p1:2000,p2:1000,p3:500}}
+];
+
+const MY_PILOT_ID = '__ME__';
+
+// ═══════════════════════════
+//  STATE
+// ═══════════════════════════
+
+let state = loadState();
+
+function defaultState() {
+  return {
+    budgetIniziale: 0, carPrice: 0, entryFee: 0,
+    selectedSponsor: null,
+    ch: {p1Race:500, p2Race:250, p3Race:100, s1:0, s2:0, s3:0},
+    weeks: Array.from({length: NUM_WEEKS}, (_,i) => ({
+      week: i+1, position: null, incidents: null,
+      sr: null, irating: null,
+      grid: null   // generated grid for this week
+    })),
+    pilots: [],  // [{id, name, rating, seed}]
+    pilotHistory: {} // id -> [{week, pos, pts, ratingAfter}]
+  };
+}
+
+function loadState() {
+  try { const s = localStorage.getItem('icarrier2'); return s ? JSON.parse(s) : defaultState(); }
+  catch { return defaultState(); }
+}
+function save() { localStorage.setItem('icarrier2', JSON.stringify(state)); }
+
+// ═══════════════════════════
+//  STAR PICKER
+// ═══════════════════════════
+
+let selectedStars = 3;
+function setStar(n) {
+  selectedStars = n;
+  const btns = document.querySelectorAll('#starPicker .star-btn');
+  btns.forEach((b,i) => b.textContent = i < n ? '★' : '☆');
+  const labels = ['','⭐ Debole','⭐⭐ Medio-basso','⭐⭐⭐ Medio','⭐⭐⭐⭐ Forte','⭐⭐⭐⭐⭐ Dominante'];
+  document.getElementById('starLabel').textContent = 'Rating: ' + labels[n];
+}
+setStar(3);
+
+// ═══════════════════════════
+//  SIMULATION ENGINE
+// ═══════════════════════════
+
+// Seeded PRNG (mulberry32)
+function makeRng(seed) {
+  let s = seed >>> 0;
+  return function() {
+    s += 0x6D2B79F5;
+    let t = Math.imul(s ^ s >>> 15, 1 | s);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+// Generate grid for a given week, anchored to player's real position
+function simulateWeek(weekIdx, myPos, pilots, weekSeed) {
+  if (!pilots.length || !myPos) return null;
+  const rng = makeRng(weekSeed + weekIdx * 9999);
+  const totalDrivers = pilots.length + 1; // +me
+
+  // Build pool of opponents with current ratings
+  const opponents = pilots.map(p => {
+    // Get current rating (evolves each week)
+    let rating = p.rating;
+    const hist = p.history || [];
+    for (let i = 0; i < Math.min(weekIdx, hist.length); i++) {
+      rating = hist[i].ratingAfter;
+    }
+    // Add noise: higher rating = better average position, but random
+    // Strength score: rating 1-5, mapped to 0.8-0.2 (lower = better pos tendency)
+    const strength = 0.85 - (rating - 1) * 0.15;
+    const noise = (rng() - 0.5) * 0.35;
+    const score = Math.max(0.01, Math.min(0.99, strength + noise));
+    return { id: p.id, name: p.name, rating, score };
+  });
+
+  // Sort opponents by score (lower score = better finisher)
+  opponents.sort((a, b) => a.score - b.score);
+
+  // Assign positions: player is at myPos, distribute opponents around
+  const positions = [];
+  const usedPos = new Set([myPos]);
+
+  // Assign opponents to remaining positions
+  const availablePos = [];
+  for (let i = 1; i <= totalDrivers; i++) {
+    if (i !== myPos) availablePos.push(i);
+  }
+
+  // Shuffle available positions slightly weighted by score
+  for (let i = 0; i < opponents.length; i++) {
+    const opp = opponents[i];
+    // Pick from available positions: better opponents pick from front
+    const idx = Math.floor(rng() * Math.min(3, availablePos.length));
+    const pos = availablePos.splice(idx, 1)[0];
+    positions.push({ id: opp.id, name: opp.name, pos, rating: opp.rating });
+  }
+
+  positions.push({ id: MY_PILOT_ID, name: 'TU', pos: myPos, isMe: true });
+  positions.sort((a, b) => a.pos - b.pos);
+  return positions;
+}
+
+// Evolve pilot rating after a race based on their position
+function evolveRating(rating, pos, totalDrivers) {
+  const relPos = pos / totalDrivers; // 0 = 1st, 1 = last
+  // Top half: slight improvement, bottom half: slight decline
+  let delta = 0;
+  if (relPos < 0.2) delta = 0.15;
+  else if (relPos < 0.4) delta = 0.07;
+  else if (relPos < 0.6) delta = 0;
+  else if (relPos < 0.8) delta = -0.07;
+  else delta = -0.15;
+
+  // Add small random noise
+  const noise = (Math.random() - 0.5) * 0.1;
+  const newRating = Math.max(1, Math.min(5, rating + delta + noise));
+  return Math.round(newRating * 10) / 10;
+}
+
+// ═══════════════════════════
+//  PILOT MANAGEMENT
+// ═══════════════════════════
+
+function addPilot() {
+  const nameIn = document.getElementById('pilotNameIn');
+  const name = nameIn.value.trim();
+  if (!name) { showToast('Inserisci un nome', true); return; }
+  if (state.pilots.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+    showToast('Pilota già presente', true); return;
+  }
+  const id = 'p_' + Date.now();
+  state.pilots.push({ id, name, rating: selectedStars, history: [] });
+  state.pilotHistory[id] = [];
+  nameIn.value = '';
+  setStar(3);
+  save();
+  renderClassifica();
+  showToast(name + ' aggiunto!');
+}
+
+function removePilot(id) {
+  state.pilots = state.pilots.filter(p => p.id !== id);
+  delete state.pilotHistory[id];
+  // Remove from generated grids
+  state.weeks.forEach(w => { if (w.grid) w.grid = null; });
+  save();
+  renderClassifica();
+}
+
+// ═══════════════════════════
+//  WEEK CALCULATION
+// ═══════════════════════════
+
+function getWeekSeed(weekIdx) {
+  // Stable seed per week based on pilot names (deterministic per season setup)
+  let seed = 12345 + weekIdx * 777;
+  for (const p of state.pilots) {
+    for (let i = 0; i < p.name.length; i++) seed ^= p.name.charCodeAt(i) << (i % 8);
+  }
+  return seed >>> 0;
+}
+
+function calcWeekEarnings(week) {
+  if (week.position === null) return null;
+  const sp = SPONSORS.find(s => s.id === state.selectedSponsor);
+  const ch = state.ch;
+  const pos = week.position;
+
+  const racePrize = pos===1?ch.p1Race:pos===2?ch.p2Race:pos===3?ch.p3Race:0;
+  const sponsorPrize = sp ? (pos===1?sp.prizes.p1:pos===2?sp.prizes.p2:pos===3?sp.prizes.p3:0) : 0;
+  const zeroInc = (week.incidents===0 && sp) ? sp.prizes.z0 : 0;
+  const srBonus = sp && week.sr>0 ? Math.round(week.sr * sp.prizes.bsr) : 0;
+  const irBonus = sp && week.irating>0 ? Math.round(week.irating * sp.prizes.bir) : 0;
+  const malus = incMalus(week.incidents);
+  const entry = -(state.entryFee || 0);
+
+  return { racePrize, sponsorPrize, zeroInc, srBonus, irBonus, malus, entry,
+    total: racePrize + sponsorPrize + zeroInc + srBonus + irBonus + malus + entry };
+}
+
+function calcBudget() {
+  let total = (state.budgetIniziale || 0) - (state.carPrice || 0);
+  for (const w of state.weeks) {
+    const e = calcWeekEarnings(w);
+    if (e) total += e.total;
+  }
+  return total;
+}
+
+function fmtMoney(v, showSign=true) {
+  if (v === null || v === undefined) return '—';
+  const s = Math.abs(v).toLocaleString('it-IT');
+  if (!showSign) return (v < 0 ? '-' : '') + s;
+  return (v >= 0 ? '+' : '-') + s;
+}
+
+// ═══════════════════════════
+//  RANKING
+// ═══════════════════════════
+
+function calcRanking() {
+  // Collect cumulative points for all pilots + me
+  const pts = {};
+  const me = { id: MY_PILOT_ID, name: 'TU ★', isMe: true };
+  pts[MY_PILOT_ID] = 0;
+  for (const p of state.pilots) pts[p.id] = 0;
+
+  for (let i = 0; i < NUM_WEEKS; i++) {
+    const w = state.weeks[i];
+    if (!w.grid) continue;
+    for (const entry of w.grid) {
+      if (pts[entry.id] !== undefined) {
+        pts[entry.id] += irPoints(entry.pos);
+      }
+    }
+  }
+
+  const all = [me, ...state.pilots].map(p => ({
+    id: p.id, name: p.isMe ? 'TU ★' : p.name,
+    isMe: !!p.isMe, rating: p.rating || 0,
+    pts: pts[p.id] || 0
+  }));
+  all.sort((a,b) => b.pts - a.pts);
+  return all;
+}
+
+// ═══════════════════════════
+//  NAV
+// ═══════════════════════════
+
+function goTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('nav-' + page).classList.add('active');
+  if (page==='home') renderHome();
+  if (page==='gare') renderGare();
+  if (page==='classifica') renderClassifica();
+  if (page==='sponsor') renderSponsor();
+  if (page==='settings') renderSettings();
+}
+
+// ═══════════════════════════
+//  RENDER HOME
+// ═══════════════════════════
+
+function renderHome() {
+  const budget = calcBudget();
+  document.getElementById('hBudget').textContent = '$ ' + budget.toLocaleString('it-IT');
+  document.getElementById('hStatBudget').textContent = '$ ' + budget.toLocaleString('it-IT');
+
+  let gare=0, vit=0, podi=0, totInc=0;
+  for (const w of state.weeks) {
+    if (w.position !== null) {
+      gare++; if (w.position===1) vit++; if (w.position<=3) podi++;
+      totInc += w.incidents||0;
+    }
+  }
+  document.getElementById('hStatGare').textContent = gare;
+  document.getElementById('hStatVit').textContent = vit;
+  document.getElementById('hStatPodio').textContent = gare>0 ? Math.round(podi/gare*100)+'%' : '0%';
+  document.getElementById('hStatInc').textContent = totInc;
+
+  const ranking = calcRanking();
+  const myRank = ranking.findIndex(r => r.isMe) + 1;
+  document.getElementById('hStatPos').textContent = myRank > 0 ? myRank + '°' : '—';
+
+  // Sponsor card
+  const sc = document.getElementById('hSponsorCard');
+  const sp = SPONSORS.find(s => s.id === state.selectedSponsor);
+  sc.innerHTML = sp
+    ? `<div class="spname">${sp.name}</div><div class="spfocus">${sp.focus}</div>
+       <div class="sptags">
+         <div class="tag"><span class="dot dotg"></span>1° +${sp.prizes.p1}</div>
+         <div class="tag"><span class="dot dots"></span>2° +${sp.prizes.p2}</div>
+         <div class="tag"><span class="dot dotb"></span>3° +${sp.prizes.p3}</div>
+         <div class="tag">0 inc +${sp.prizes.z0}</div>
+         <div class="tag">SR ×${sp.prizes.bsr}</div>
+         <div class="tag">iR ×${sp.prizes.bir}</div>
+       </div>`
+    : '<div style="color:var(--text3);font-size:13px">Nessuno — vai su Sponsor</div>';
+
+  // Weeks summary
+  const el = document.getElementById('hWeeksSummary');
+  el.innerHTML = '';
+  for (const w of state.weeks) {
+    const e = calcWeekEarnings(w);
+    const posClass = w.position===1?'p1':w.position===2?'p2':w.position===3?'p3':'po';
+    el.innerHTML += `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--text3);width:60px">Set.${w.week}</div>
+      ${w.position!==null ? `<div class="pb ${posClass}">${w.position}</div>` : `<div style="width:26px;height:26px;border-radius:50%;border:1px dashed var(--border)"></div>`}
+      <div style="flex:1;font-size:11px;color:var(--text3)">${w.position!==null?`Inc:${w.incidents??0} SR:${w.sr??0} iR:${w.irating??0}`:'—'}</div>
+      <div style="font-family:'Orbitron',monospace;font-size:12px;color:${e&&e.total>=0?'var(--gold)':'var(--accent2)'}">${e?fmtMoney(e.total):'—'}</div>
+    </div>`;
+  }
+}
+
+// ═══════════════════════════
+//  RENDER GARE
+// ═══════════════════════════
+
+function renderGare() {
+  const el = document.getElementById('raceWeeksList');
+  el.innerHTML = '';
+  for (let i = 0; i < NUM_WEEKS; i++) {
+    const w = state.weeks[i];
+    const e = calcWeekEarnings(w);
+    const hasData = w.position !== null;
+    const posClass = w.position===1?'p1':w.position===2?'p2':w.position===3?'p3':'po';
+
+    const card = document.createElement('div');
+    card.className = 'rcard' + (hasData ? ' done' : '');
+    card.innerHTML = `
+      <div class="rchead" onclick="toggleWeek(${i})">
+        <div class="rwlabel">Settimana ${w.week}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${hasData ? `<div class="pb ${posClass}">${w.position}</div>` : ''}
+          <div class="rwtotal" style="color:${e&&e.total<0?'var(--accent2)':'var(--gold)'}">${e?fmtMoney(e.total):'—'}</div>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="rcbody" id="rcb-${i}">
+        <div class="fgrid">
+          <div class="fg"><label>Posizione</label><input type="number" id="w${i}pos" min="1" max="50" placeholder="1" value="${w.position??''}"></div>
+          <div class="fg"><label>Incidenti</label><input type="number" id="w${i}inc" min="0" max="25" placeholder="0" value="${w.incidents??''}"></div>
+          <div class="fg"><label>Δ SR</label><input type="number" id="w${i}sr" step="0.01" placeholder="0.50" value="${w.sr??''}"></div>
+          <div class="fg"><label>Δ iRating</label><input type="number" id="w${i}ir" placeholder="50" value="${w.irating??''}"></div>
+        </div>
+        <button class="btn" onclick="saveWeek(${i})">✓ Salva Settimana ${w.week}</button>
+        ${hasData?`<button class="btn sec" style="margin-top:6px" onclick="clearWeek(${i})">✕ Cancella</button>`:''}
+        ${e?`<div class="bk">
+          <div class="bk-row"><span>Premio gara</span><span>+${e.racePrize}</span></div>
+          <div class="bk-row"><span>Premio sponsor</span><span>+${e.sponsorPrize}</span></div>
+          ${e.zeroInc>0?`<div class="bk-row"><span>Bonus 0 inc.</span><span style="color:var(--green)">+${e.zeroInc}</span></div>`:''}
+          ${e.srBonus>0?`<div class="bk-row"><span>Bonus SR</span><span style="color:var(--green)">+${e.srBonus}</span></div>`:''}
+          ${e.irBonus>0?`<div class="bk-row"><span>Bonus iRating</span><span style="color:var(--green)">+${e.irBonus}</span></div>`:''}
+          ${e.malus<0?`<div class="bk-row"><span>Malus incidenti</span><span style="color:var(--accent2)">${e.malus}</span></div>`:''}
+          <div class="bk-row"><span>Iscrizione</span><span style="color:var(--accent2)">${e.entry}</span></div>
+          <div class="bk-row total"><span>Totale</span><span style="color:${e.total>=0?'var(--gold)':'var(--accent2)'}">${fmtMoney(e.total)}</span></div>
+        </div>`:''}
+      </div>`;
+    el.appendChild(card);
+  }
+}
+
+function toggleWeek(i) {
+  const b = document.getElementById('rcb-' + i);
+  const ch = b.previousElementSibling.querySelector('.chevron');
+  const open = b.classList.toggle('open');
+  ch.classList.toggle('open', open);
+}
+
+function saveWeek(i) {
+  const pos = parseInt(document.getElementById(`w${i}pos`).value);
+  const inc = parseInt(document.getElementById(`w${i}inc`).value);
+  const sr = parseFloat(document.getElementById(`w${i}sr`).value);
+  const ir = parseFloat(document.getElementById(`w${i}ir`).value);
+
+  if (!pos || pos < 1) { showToast('Inserisci una posizione valida', true); return; }
+  if (isNaN(inc) || inc < 0) { showToast('Inserisci gli incidenti', true); return; }
+
+  state.weeks[i].position = pos;
+  state.weeks[i].incidents = inc;
+  state.weeks[i].sr = isNaN(sr) ? 0 : sr;
+  state.weeks[i].irating = isNaN(ir) ? 0 : ir;
+
+  // Generate / regenerate grid for this week
+  if (state.pilots.length > 0) {
+    const seed = getWeekSeed(i);
+    const grid = simulateWeek(i, pos, state.pilots, seed);
+    state.weeks[i].grid = grid;
+
+    // Evolve pilot ratings based on their simulated positions
+    const total = grid.length;
+    for (const entry of grid) {
+      const pilot = state.pilots.find(p => p.id === entry.id);
+      if (pilot) {
+        if (!pilot.history) pilot.history = [];
+        const newRating = evolveRating(
+          pilot.history.length > 0 ? pilot.history[pilot.history.length-1].ratingAfter : pilot.rating,
+          entry.pos, total
+        );
+        // Update or add history entry for this week
+        const existingIdx = pilot.history.findIndex(h => h.week === i);
+        const hEntry = { week: i, pos: entry.pos, pts: irPoints(entry.pos), ratingAfter: newRating };
+        if (existingIdx >= 0) pilot.history[existingIdx] = hEntry;
+        else pilot.history.push(hEntry);
+      }
+    }
+  }
+
+  save();
+  showToast('Settimana ' + (i+1) + ' salvata!');
+  renderGare();
+  renderHome();
+}
+
+function clearWeek(i) {
+  state.weeks[i].position = null;
+  state.weeks[i].incidents = null;
+  state.weeks[i].sr = null;
+  state.weeks[i].irating = null;
+  state.weeks[i].grid = null;
+  save();
+  renderGare();
+  renderHome();
+}
+
+// ═══════════════════════════
+//  RENDER CLASSIFICA
+// ═══════════════════════════
+
+function renderClassifica() {
+  // Pilot setup list
+  const el = document.getElementById('pilotSetupList');
+  el.innerHTML = '';
+  if (state.pilots.length === 0) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:8px 0">Nessun pilota aggiunto</div>';
+  } else {
+    for (const p of state.pilots) {
+      // Get current effective rating
+      let curRating = p.rating;
+      if (p.history && p.history.length > 0) {
+        curRating = p.history[p.history.length-1].ratingAfter;
+      }
+      const stars = '★'.repeat(Math.round(curRating)) + '☆'.repeat(5 - Math.round(curRating));
+      el.innerHTML += `<div class="pilot-row">
+        <div>
+          <div style="font-size:13px;font-weight:500">${p.name}</div>
+          <div style="font-size:11px;color:var(--gold)">${stars} <span style="color:var(--text3)">(${curRating.toFixed(1)})</span></div>
+        </div>
+        <button class="pilot-del" onclick="removePilot('${p.id}')">✕</button>
+      </div>`;
+    }
+  }
+
+  // Ranking table
+  const ranking = calcRanking();
+  const rt = document.getElementById('rankingTable');
+  if (ranking.length === 0) {
+    rt.innerHTML = '<div class="empty"><div class="empty-icon">🏁</div><div style="font-size:13px;color:var(--text3)">Aggiungi piloti per vedere la classifica</div></div>';
+  } else {
+    rt.innerHTML = ranking.map((r, idx) => {
+      const posClass = idx===0?'p1':idx===1?'p2':idx===2?'p3':'po';
+      const stars = r.isMe ? '' : ('★'.repeat(Math.round(r.rating||3)));
+      return `<div class="rank-row">
+        <div class="rank-num">${idx+1}</div>
+        <div class="pb ${posClass}">${idx+1}</div>
+        <div class="rank-name">${r.name}${r.isMe?'':` <span style="color:var(--gold);font-size:10px">${stars}</span>`}</div>
+        <div class="rank-pts">${r.pts} pt</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Week grids
+  const wg = document.getElementById('weekGrids');
+  wg.innerHTML = '';
+  for (let i = 0; i < NUM_WEEKS; i++) {
+    const w = state.weeks[i];
+    if (!w.grid) continue;
+    wg.innerHTML += `<div class="stitle">Settimana ${w.week}</div>
+    <div class="card">
+      <table class="grid-table">
+        <tr><th>Pos</th><th>Pilota</th><th>Rating</th><th>Punti</th></tr>
+        ${w.grid.map(entry => {
+          const isMe = entry.isMe;
+          const posClass = entry.pos===1?'p1':entry.pos===2?'p2':entry.pos===3?'p3':'po';
+          const pilot = state.pilots.find(p => p.id === entry.id);
+          const ratingAfter = pilot && pilot.history ? pilot.history.find(h => h.week===i)?.ratingAfter : null;
+          const ratingDiff = pilot && ratingAfter !== null ? (ratingAfter - (pilot.rating)).toFixed(1) : null;
+          return `<tr class="${isMe?'me-row':''}">
+            <td><div class="pb ${posClass}" style="width:22px;height:22px;font-size:10px">${entry.pos}</div></td>
+            <td style="${isMe?'color:var(--accent);font-weight:700':''}">${entry.name}${isMe?'':''}</td>
+            <td style="font-size:11px;color:var(--text3)">${isMe?'—':`${entry.rating?.toFixed?.(1)||entry.rating}★`}</td>
+            <td style="font-family:'Orbitron',monospace;font-size:12px;color:var(--gold)">${irPoints(entry.pos)}</td>
+          </tr>`;
+        }).join('')}
+      </table>
+    </div>`;
+  }
+  if (!state.weeks.some(w => w.grid)) {
+    wg.innerHTML = '<div class="empty"><div class="empty-icon">🎲</div><div style="font-size:12px;color:var(--text3)">Le griglie appariranno dopo aver salvato i risultati</div></div>';
+  }
+}
+
+// ═══════════════════════════
+//  RENDER SPONSOR
+// ═══════════════════════════
+
+function renderSponsor() {
+  const el = document.getElementById('sponsorList');
+  el.innerHTML = '';
+  for (const sp of SPONSORS) {
+    const sel = state.selectedSponsor === sp.id;
+    el.innerHTML += `<div class="spcard${sel?' sel':''}" onclick="selectSponsor('${sp.id}')">
+      ${sel?'<div style="font-size:10px;color:var(--accent);font-weight:700;letter-spacing:1px;margin-bottom:6px">✓ ATTIVO</div>':''}
+      <div class="spname">${sp.name}</div>
+      <div class="spfocus">${sp.focus}</div>
+      <div class="spdesc">${sp.desc}</div>
+      <div class="sptags">
+        <div class="tag"><span class="dot dotg"></span>1° +${sp.prizes.p1}</div>
+        <div class="tag"><span class="dot dots"></span>2° +${sp.prizes.p2}</div>
+        <div class="tag"><span class="dot dotb"></span>3° +${sp.prizes.p3}</div>
+        <div class="tag">0 inc +${sp.prizes.z0}</div>
+        <div class="tag">SR ×${sp.prizes.bsr}</div>
+        <div class="tag">iR ×${sp.prizes.bir}</div>
+      </div>
+      <div style="margin-top:8px;font-size:10px;color:var(--text3)">Fine stagione: 🥇${sp.season.p1} 🥈${sp.season.p2} 🥉${sp.season.p3}</div>
+    </div>`;
+  }
+}
+
+function selectSponsor(id) {
+  state.selectedSponsor = id;
+  save();
+  renderSponsor();
+  showToast('Sponsor selezionato!');
+}
+
+// ═══════════════════════════
+//  RENDER SETTINGS
+// ═══════════════════════════
+
+function renderSettings() {
+  document.getElementById('sBudgetIniz').value = state.budgetIniziale || '';
+  document.getElementById('sCarPrice').value = state.carPrice || '';
+  document.getElementById('sEntryFee').value = state.entryFee || '';
+  document.getElementById('sCh1').value = state.ch.p1Race || '';
+  document.getElementById('sCh2').value = state.ch.p2Race || '';
+  document.getElementById('sCh3').value = state.ch.p3Race || '';
+}
+
+function saveSettings() {
+  state.budgetIniziale = parseFloat(document.getElementById('sBudgetIniz').value)||0;
+  state.carPrice = parseFloat(document.getElementById('sCarPrice').value)||0;
+  state.entryFee = parseFloat(document.getElementById('sEntryFee').value)||0;
+  state.ch.p1Race = parseFloat(document.getElementById('sCh1').value)||500;
+  state.ch.p2Race = parseFloat(document.getElementById('sCh2').value)||250;
+  state.ch.p3Race = parseFloat(document.getElementById('sCh3').value)||100;
+  save();
+  showToast('Impostazioni salvate!');
+  renderHome();
+}
+
+function resetAll() {
+  if (!confirm('Vuoi davvero resettare tutto?')) return;
+  localStorage.removeItem('icarrier2');
+  state = defaultState();
+  save();
+  goTo('home');
+  showToast('Stagione resettata');
+}
+
+// ═══════════════════════════
+//  TOAST
+// ═══════════════════════════
+
+function showToast(msg, err) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (err?' err':'');
+  setTimeout(() => t.className = 'toast', 2300);
+}
+
+// ═══════════════════════════
+//  INIT
+// ═══════════════════════════
+renderHome();
+</script>
+</body>
+</html>
